@@ -15,6 +15,13 @@ public extension FlowNavigator {
     routes.push(screen)
   }
 
+  /// Pushes a new screen via a push navigation with left-to-right animation.
+  /// This should only be called if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: The screen to push.
+  func pushLeftToRight(_ screen: Screen) {
+    routes.pushLeftToRight(screen)
+  }
+
   /// Presents a new screen via a sheet presentation.
   /// - Parameter screen: The screen to push.
   /// - Parameter onDismiss: A closure to be invoked when the screen is dismissed.

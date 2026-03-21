@@ -4,22 +4,22 @@ import SwiftUI
 /// The style with which a route is shown, i.e., if the route is pushed, presented
 /// as a sheet or presented as a full-screen cover.
 public enum RouteStyle: Hashable {
-  case push, sheet(embedInNavigationView: Bool), cover(embedInNavigationView: Bool)
-  
+  case push, pushLeftToRight, sheet(embedInNavigationView: Bool), cover(embedInNavigationView: Bool)
+
   public var isSheet: Bool {
     switch self {
     case .sheet:
       return true
-    case .cover, .push:
+    case .cover, .push, .pushLeftToRight:
       return false
     }
   }
-  
+
   public var isCover: Bool {
     switch self {
     case .cover:
       return true
-    case .sheet, .push:
+    case .sheet, .push, .pushLeftToRight:
       return false
     }
   }
@@ -32,6 +32,8 @@ public extension Route {
     switch self {
     case .push:
       return .push
+    case .pushLeftToRight:
+      return .pushLeftToRight
     case .sheet(_, let embedInNavigationView, _):
       return .sheet(embedInNavigationView: embedInNavigationView)
     case .cover(_, let embedInNavigationView, _):
@@ -149,7 +151,7 @@ public enum RouteSteps {
     // Pop extraneous pushed screens.
     while var popStep = steps.last, popStep.count > firstDivergingIndex {
       var popped: Route<Screen>? = popStep.popLast()
-      while popped?.style == .push, popStep.count > firstDivergingIndex, popStep.last?.style == .push {
+      while (popped?.style == .push || popped?.style == .pushLeftToRight), popStep.count > firstDivergingIndex, (popStep.last?.style == .push || popStep.last?.style == .pushLeftToRight) {
         popped = popStep.popLast()
       }
       steps.append(popStep)

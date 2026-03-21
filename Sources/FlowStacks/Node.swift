@@ -31,11 +31,34 @@ indirect enum Node<Screen, V: View>: View {
 
   private var pushBinding: Binding<Bool> {
     switch next {
-    case .route(.push, _, _, _, _):
+    case .route(.push, _, _, _, _), .route(.pushLeftToRight, _, _, _, _):
       return isActiveBinding
     default:
       return .constant(false)
     }
+  }
+
+  private var shouldUseLeftToRightTransition: Bool {
+    // Use custom animation if:
+    // 1. Pushing TO a pushLeftToRight screen (check next route), OR
+    // 2. Popping FROM a pushLeftToRight screen (check current route)
+    // This ensures proper animation in both directions
+
+    let currentIsPushLeftToRight: Bool
+    if case .route(let route, _, _, _, _) = self {
+      currentIsPushLeftToRight = route.style == .pushLeftToRight
+    } else {
+      currentIsPushLeftToRight = false
+    }
+
+    let nextIsPushLeftToRight: Bool
+    if case .route(let route, _, _, _, _) = next {
+      nextIsPushLeftToRight = route.style == .pushLeftToRight
+    } else {
+      nextIsPushLeftToRight = false
+    }
+
+    return currentIsPushLeftToRight || nextIsPushLeftToRight
   }
 
   private var sheetBinding: Binding<Bool> {
@@ -94,6 +117,11 @@ indirect enum Node<Screen, V: View>: View {
   }
 
   @ViewBuilder
+  private var pushDestination: some View {
+    next
+  }
+
+  @ViewBuilder
   private var unwrappedBody: some View {
     /// NOTE: On iOS 14.4 and below, a bug prevented multiple sheet/fullScreenCover modifiers being chained
     /// on the same view, so we conditionally add the sheet/cover modifiers as a workaround. See
@@ -104,7 +132,7 @@ indirect enum Node<Screen, V: View>: View {
       // https://github.com/johnpatrickmorgan/FlowStacks/discussions/57#discussioncomment-6276362
       ZStack { screenView }
         .background(
-          NavigationLink(destination: next, isActive: pushBinding, label: EmptyView.init)
+          NavigationLink(destination: pushDestination, isActive: pushBinding, label: EmptyView.init)
             .hidden()
         )
         .sheet(
@@ -121,7 +149,7 @@ indirect enum Node<Screen, V: View>: View {
       let asSheet = next?.route?.style.isSheet ?? false
       screenView
         .background(
-          NavigationLink(destination: next, isActive: pushBinding, label: EmptyView.init)
+          NavigationLink(destination: pushDestination, isActive: pushBinding, label: EmptyView.init)
             .hidden()
         )
         .present(
@@ -137,10 +165,12 @@ indirect enum Node<Screen, V: View>: View {
     if route?.embedInNavigationView ?? false {
       NavigationView {
         unwrappedBody
+          .customNavigationTransition(enabled: shouldUseLeftToRightTransition)
       }
       .navigationViewStyle(supportedNavigationViewStyle)
     } else {
       unwrappedBody
+        .customNavigationTransition(enabled: shouldUseLeftToRightTransition)
     }
   }
 }
