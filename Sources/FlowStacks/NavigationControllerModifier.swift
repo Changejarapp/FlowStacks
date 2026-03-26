@@ -5,17 +5,19 @@ import UIKit
 
 struct NavigationControllerModifier: ViewModifier {
     let delegate: CustomNavigationControllerDelegate
-    let useCustomTransition: Bool
+    let useLeftToRightForPush: Bool
+    let useLeftToRightForPop: Bool
 
     func body(content: Content) -> some View {
         content
-            .background(NavigationControllerAccessor(delegate: delegate, useCustomTransition: useCustomTransition))
+            .background(NavigationControllerAccessor(delegate: delegate, useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop))
     }
 }
 
 struct NavigationControllerAccessor: UIViewControllerRepresentable {
     let delegate: CustomNavigationControllerDelegate
-    let useCustomTransition: Bool
+    let useLeftToRightForPush: Bool
+    let useLeftToRightForPop: Bool
 
     func makeUIViewController(context: Context) -> UIViewController {
         let viewController = UIViewController()
@@ -23,7 +25,8 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        delegate.shouldUseCustomTransition = useCustomTransition
+        delegate.useLeftToRightForPush = useLeftToRightForPush
+        delegate.useLeftToRightForPop = useLeftToRightForPop
         if let navigationController = uiViewController.navigationController {
             navigationController.delegate = delegate
         } else {
@@ -38,10 +41,10 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
 #endif
 
 extension View {
-    func customNavigationTransition(enabled: Bool = true) -> some View {
+    func customNavigationTransition(useLeftToRightForPush: Bool, useLeftToRightForPop: Bool) -> some View {
         #if os(iOS)
         let delegate = CustomNavigationControllerDelegate()
-        return self.modifier(NavigationControllerModifier(delegate: delegate, useCustomTransition: enabled))
+        return self.modifier(NavigationControllerModifier(delegate: delegate, useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop))
         #else
         return self
         #endif

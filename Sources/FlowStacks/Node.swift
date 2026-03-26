@@ -38,27 +38,20 @@ indirect enum Node<Screen, V: View>: View {
     }
   }
 
-  private var shouldUseLeftToRightTransition: Bool {
-    // Use custom animation if:
-    // 1. Pushing TO a pushLeftToRight screen (check next route), OR
-    // 2. Popping FROM a pushLeftToRight screen (check current route)
-    // This ensures proper animation in both directions
-
-    let currentIsPushLeftToRight: Bool
-    if case .route(let route, _, _, _, _) = self {
-      currentIsPushLeftToRight = route.style == .pushLeftToRight
-    } else {
-      currentIsPushLeftToRight = false
-    }
-
-    let nextIsPushLeftToRight: Bool
+  // For PUSH: Check if the NEXT screen should use left-to-right animation
+  private var useLeftToRightForPush: Bool {
     if case .route(let route, _, _, _, _) = next {
-      nextIsPushLeftToRight = route.style == .pushLeftToRight
-    } else {
-      nextIsPushLeftToRight = false
+      return route.style == .pushLeftToRight
     }
+    return false
+  }
 
-    return currentIsPushLeftToRight || nextIsPushLeftToRight
+  // For POP: Check if the CURRENT screen was pushed with left-to-right
+  private var useLeftToRightForPop: Bool {
+    if case .route(let route, _, _, _, _) = self {
+      return route.style == .pushLeftToRight
+    }
+    return false
   }
 
   private var sheetBinding: Binding<Bool> {
@@ -165,12 +158,12 @@ indirect enum Node<Screen, V: View>: View {
     if route?.embedInNavigationView ?? false {
       NavigationView {
         unwrappedBody
-          .customNavigationTransition(enabled: shouldUseLeftToRightTransition)
+          .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop)
       }
       .navigationViewStyle(supportedNavigationViewStyle)
     } else {
       unwrappedBody
-        .customNavigationTransition(enabled: shouldUseLeftToRightTransition)
+        .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop)
     }
   }
 }

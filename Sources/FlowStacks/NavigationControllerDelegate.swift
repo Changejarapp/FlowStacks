@@ -4,7 +4,8 @@ import SwiftUI
 import UIKit
 
 class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelegate {
-    var shouldUseCustomTransition: Bool = true
+    var useLeftToRightForPush: Bool = false
+    var useLeftToRightForPop: Bool = false
 
     func navigationController(
         _ navigationController: UINavigationController,
@@ -12,8 +13,14 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
         from fromVC: UIViewController,
         to toVC: UIViewController
     ) -> UIViewControllerAnimatedTransitioning? {
-        // Only return custom transition if explicitly requested
-        return shouldUseCustomTransition ? LeftToRightTransition(operation: operation) : nil
+        switch operation {
+        case .push where useLeftToRightForPush:
+            return LeftToRightTransition(operation: operation)
+        case .pop where useLeftToRightForPop:
+            return LeftToRightTransition(operation: operation)
+        default:
+            return nil
+        }
     }
 }
 
