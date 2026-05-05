@@ -31,11 +31,27 @@ indirect enum Node<Screen, V: View>: View {
 
   private var pushBinding: Binding<Bool> {
     switch next {
-    case .route(.push, _, _, _, _):
+    case .route(.push, _, _, _, _), .route(.pushLeftToRight, _, _, _, _):
       return isActiveBinding
     default:
       return .constant(false)
     }
+  }
+
+  // For PUSH: Check if the NEXT screen should use left-to-right animation
+  private var useLeftToRightForPush: Bool {
+    if case .route(let route, _, _, _, _) = next {
+      return route.style == .pushLeftToRight
+    }
+    return false
+  }
+
+  // For POP: Check if the CURRENT screen was pushed with left-to-right
+  private var useLeftToRightForPop: Bool {
+    if case .route(let route, _, _, _, _) = self {
+      return route.style == .pushLeftToRight
+    }
+    return false
   }
 
   private var sheetBinding: Binding<Bool> {
@@ -94,6 +110,11 @@ indirect enum Node<Screen, V: View>: View {
   }
 
   @ViewBuilder
+  private var pushDestination: some View {
+    next
+  }
+
+  @ViewBuilder
   private var unwrappedBody: some View {
     /// NOTE: On iOS 14.4 and below, a bug prevented multiple sheet/fullScreenCover modifiers being chained
     /// on the same view, so we conditionally add the sheet/cover modifiers as a workaround. See
@@ -104,7 +125,7 @@ indirect enum Node<Screen, V: View>: View {
       // https://github.com/johnpatrickmorgan/FlowStacks/discussions/57#discussioncomment-6276362
       ZStack { screenView }
         .background(
-          NavigationLink(destination: next, isActive: pushBinding, label: EmptyView.init)
+          NavigationLink(destination: pushDestination, isActive: pushBinding, label: EmptyView.init)
             .hidden()
         )
         .sheet(
@@ -121,7 +142,7 @@ indirect enum Node<Screen, V: View>: View {
       let asSheet = next?.route?.style.isSheet ?? false
       screenView
         .background(
-          NavigationLink(destination: next, isActive: pushBinding, label: EmptyView.init)
+          NavigationLink(destination: pushDestination, isActive: pushBinding, label: EmptyView.init)
             .hidden()
         )
         .present(
@@ -137,10 +158,12 @@ indirect enum Node<Screen, V: View>: View {
     if route?.embedInNavigationView ?? false {
       NavigationView {
         unwrappedBody
+          .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop)
       }
       .navigationViewStyle(supportedNavigationViewStyle)
     } else {
       unwrappedBody
+        .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop)
     }
   }
 }

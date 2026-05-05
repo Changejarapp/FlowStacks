@@ -4,8 +4,9 @@ import Foundation
 /// pollute autocomplete for Arrays containing other types.
 public protocol RouteProtocol {
   associatedtype Screen
-  
+
   static func push(_ screen: Screen) -> Self
+  static func pushLeftToRight(_ screen: Screen) -> Self
   static func sheet(_ screen: Screen, embedInNavigationView: Bool, onDismiss: (() -> Void)?) -> Self
 #if os(macOS)
 // Full-screen cover unavailable.
@@ -15,7 +16,7 @@ public protocol RouteProtocol {
   var screen: Screen { get set }
   var embedInNavigationView: Bool { get }
   var isPresented: Bool { get }
-  
+
   var style: RouteStyle { get }
 }
 

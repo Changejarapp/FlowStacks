@@ -7,7 +7,7 @@ public extension RoutableCollection where Element: RouteProtocol {
   var canPush: Bool? {
     for (index, route) in zip(indices, self).reversed() {
       switch route.style {
-      case .push:
+      case .push, .pushLeftToRight:
         continue
       case .cover(let embedInNavigationView), .sheet(let embedInNavigationView):
         if index > 0 {
@@ -35,6 +35,21 @@ public extension RoutableCollection where Element: RouteProtocol {
       """
     )
     _append(element: .push(screen))
+  }
+
+  /// Pushes a new screen via a push navigation with left-to-right animation.
+  /// This should only be called if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: The screen to push.
+  mutating func pushLeftToRight(_ screen: Element.Screen) {
+    assert(
+      canPush != false,
+      """
+      Attempting to push a screen, but the most recently presented screen is not
+      embedded in a `NavigationView`. Please ensure the root or most recently presented
+      route has `embedInNavigationView` set to `true`.
+      """
+    )
+    _append(element: .pushLeftToRight(screen))
   }
 
   /// Presents a new screen via a sheet presentation.
@@ -167,7 +182,7 @@ public extension RoutableCollection where Element: RouteProtocol {
   /// - Parameter count: The number of screens to go back. Defaults to 1.
   mutating func pop(_ count: Int = 1) {
     assert(count <= self.count)
-    assert(suffix(count).allSatisfy { $0.style == .push })
+    assert(suffix(count).allSatisfy { $0.style == .push || $0.style == .pushLeftToRight })
     goBack(count)
   }
 
