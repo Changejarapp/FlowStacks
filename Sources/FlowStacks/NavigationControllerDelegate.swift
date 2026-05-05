@@ -26,13 +26,14 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
 
 class LeftToRightTransition: NSObject, UIViewControllerAnimatedTransitioning {
     let operation: UINavigationController.Operation
+    var duration: TimeInterval = 0.35
 
     init(operation: UINavigationController.Operation) {
         self.operation = operation
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.35
+        return duration
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
