@@ -7,10 +7,18 @@ struct NavigationControllerModifier: ViewModifier {
     let delegate: CustomNavigationControllerDelegate
     let useLeftToRightForPush: Bool
     let useLeftToRightForPop: Bool
+    let useZoomForPush: Bool
+    let useZoomForPop: Bool
 
     func body(content: Content) -> some View {
         content
-            .background(NavigationControllerAccessor(delegate: delegate, useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop))
+            .background(NavigationControllerAccessor(
+                delegate: delegate,
+                useLeftToRightForPush: useLeftToRightForPush,
+                useLeftToRightForPop: useLeftToRightForPop,
+                useZoomForPush: useZoomForPush,
+                useZoomForPop: useZoomForPop
+            ))
     }
 }
 
@@ -18,6 +26,8 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
     let delegate: CustomNavigationControllerDelegate
     let useLeftToRightForPush: Bool
     let useLeftToRightForPop: Bool
+    let useZoomForPush: Bool
+    let useZoomForPop: Bool
 
     func makeUIViewController(context: Context) -> UIViewController {
         let viewController = UIViewController()
@@ -27,6 +37,8 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         delegate.useLeftToRightForPush = useLeftToRightForPush
         delegate.useLeftToRightForPop = useLeftToRightForPop
+        delegate.useZoomForPush = useZoomForPush
+        delegate.useZoomForPop = useZoomForPop
         if let navigationController = uiViewController.navigationController {
             navigationController.delegate = delegate
         } else {
@@ -41,10 +53,21 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
 #endif
 
 extension View {
-    func customNavigationTransition(useLeftToRightForPush: Bool, useLeftToRightForPop: Bool) -> some View {
+    func customNavigationTransition(
+        useLeftToRightForPush: Bool,
+        useLeftToRightForPop: Bool,
+        useZoomForPush: Bool,
+        useZoomForPop: Bool
+    ) -> some View {
         #if os(iOS)
         let delegate = CustomNavigationControllerDelegate()
-        return self.modifier(NavigationControllerModifier(delegate: delegate, useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop))
+        return self.modifier(NavigationControllerModifier(
+            delegate: delegate,
+            useLeftToRightForPush: useLeftToRightForPush,
+            useLeftToRightForPop: useLeftToRightForPop,
+            useZoomForPush: useZoomForPush,
+            useZoomForPop: useZoomForPop
+        ))
         #else
         return self
         #endif

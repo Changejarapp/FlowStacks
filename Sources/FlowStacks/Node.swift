@@ -31,7 +31,7 @@ indirect enum Node<Screen, V: View>: View {
 
   private var pushBinding: Binding<Bool> {
     switch next {
-    case .route(.push, _, _, _, _), .route(.pushLeftToRight, _, _, _, _):
+    case .route(.push, _, _, _, _), .route(.pushLeftToRight, _, _, _, _), .route(.pushZoom, _, _, _, _):
       return isActiveBinding
     default:
       return .constant(false)
@@ -50,6 +50,22 @@ indirect enum Node<Screen, V: View>: View {
   private var useLeftToRightForPop: Bool {
     if case .route(let route, _, _, _, _) = self {
       return route.style == .pushLeftToRight
+    }
+    return false
+  }
+
+  // For PUSH: Check if the NEXT screen should use zoom animation
+  private var useZoomForPush: Bool {
+    if case .route(let route, _, _, _, _) = next {
+      return route.style == .pushZoom
+    }
+    return false
+  }
+
+  // For POP: Check if the CURRENT screen was pushed with zoom animation
+  private var useZoomForPop: Bool {
+    if case .route(let route, _, _, _, _) = self {
+      return route.style == .pushZoom
     }
     return false
   }
@@ -158,12 +174,12 @@ indirect enum Node<Screen, V: View>: View {
     if route?.embedInNavigationView ?? false {
       NavigationView {
         unwrappedBody
-          .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop)
+          .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop, useZoomForPush: useZoomForPush, useZoomForPop: useZoomForPop)
       }
       .navigationViewStyle(supportedNavigationViewStyle)
     } else {
       unwrappedBody
-        .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop)
+        .customNavigationTransition(useLeftToRightForPush: useLeftToRightForPush, useLeftToRightForPop: useLeftToRightForPop, useZoomForPush: useZoomForPush, useZoomForPop: useZoomForPop)
     }
   }
 }

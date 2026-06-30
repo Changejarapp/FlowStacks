@@ -22,6 +22,14 @@ public extension FlowNavigator {
     routes.pushLeftToRight(screen)
   }
 
+  /// Pushes a new screen via a zoom/expand animation from the source frame in `ZoomTransitionContext.shared`.
+  /// Set `ZoomTransitionContext.shared.sourceFrame` to the tapped element's frame (global coordinates) before calling.
+  /// This should only be called if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: The screen to push.
+  func pushZoom(_ screen: Screen) {
+    routes.pushZoom(screen)
+  }
+
   /// Presents a new screen via a sheet presentation.
   /// - Parameter screen: The screen to push.
   /// - Parameter onDismiss: A closure to be invoked when the screen is dismissed.

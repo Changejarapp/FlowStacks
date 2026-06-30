@@ -7,7 +7,7 @@ public extension RoutableCollection where Element: RouteProtocol {
   var canPush: Bool? {
     for (index, route) in zip(indices, self).reversed() {
       switch route.style {
-      case .push, .pushLeftToRight:
+      case .push, .pushLeftToRight, .pushZoom:
         continue
       case .cover(let embedInNavigationView), .sheet(let embedInNavigationView):
         if index > 0 {
@@ -50,6 +50,22 @@ public extension RoutableCollection where Element: RouteProtocol {
       """
     )
     _append(element: .pushLeftToRight(screen))
+  }
+
+  /// Pushes a new screen via a zoom/expand animation from the source frame in `ZoomTransitionContext.shared`.
+  /// Set `ZoomTransitionContext.shared.sourceFrame` to the tapped element's frame (global coordinates) before calling.
+  /// This should only be called if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: The screen to push.
+  mutating func pushZoom(_ screen: Element.Screen) {
+    assert(
+      canPush != false,
+      """
+      Attempting to push a screen, but the most recently presented screen is not
+      embedded in a `NavigationView`. Please ensure the root or most recently presented
+      route has `embedInNavigationView` set to `true`.
+      """
+    )
+    _append(element: .pushZoom(screen))
   }
 
   /// Presents a new screen via a sheet presentation.
@@ -182,7 +198,7 @@ public extension RoutableCollection where Element: RouteProtocol {
   /// - Parameter count: The number of screens to go back. Defaults to 1.
   mutating func pop(_ count: Int = 1) {
     assert(count <= self.count)
-    assert(suffix(count).allSatisfy { $0.style == .push || $0.style == .pushLeftToRight })
+    assert(suffix(count).allSatisfy { $0.style == .push || $0.style == .pushLeftToRight || $0.style == .pushZoom })
     goBack(count)
   }
 
