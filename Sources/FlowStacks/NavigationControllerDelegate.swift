@@ -17,9 +17,11 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
     ) -> UIViewControllerAnimatedTransitioning? {
         switch operation {
         case .push where useZoomForPush:
+            ZoomTransitionContext.shared.wasLastPushZoom = true
             let frame = ZoomTransitionContext.shared.sourceFrame
             return ZoomTransition(operation: operation, sourceFrame: frame)
-        case .pop where useZoomForPop:
+        case .pop where useZoomForPop || ZoomTransitionContext.shared.wasLastPushZoom:
+            ZoomTransitionContext.shared.wasLastPushZoom = false
             return ZoomTransition(operation: operation, sourceFrame: ZoomTransitionContext.shared.lastPushSourceFrame)
         case .push where useLeftToRightForPush:
             return LeftToRightTransition(operation: operation)
@@ -83,8 +85,8 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
     let operation: UINavigationController.Operation
     let sourceFrame: CGRect
 
-    private let pushDuration: TimeInterval = 0.42
-    private let popDuration: TimeInterval = 0.32
+    private let pushDuration: TimeInterval = 0.55
+    private let popDuration: TimeInterval = 0.42
     private let cardCornerRadius: CGFloat = 16
 
     // Reads the physical screen corner radius via KVC — stable private API,
