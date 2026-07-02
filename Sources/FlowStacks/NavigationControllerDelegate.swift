@@ -17,11 +17,9 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
     ) -> UIViewControllerAnimatedTransitioning? {
         switch operation {
         case .push where useZoomForPush:
-            ZoomTransitionContext.shared.wasLastPushZoom = true
             let frame = ZoomTransitionContext.shared.sourceFrame
             return ZoomTransition(operation: operation, sourceFrame: frame)
-        case .pop where useZoomForPop || ZoomTransitionContext.shared.wasLastPushZoom:
-            ZoomTransitionContext.shared.wasLastPushZoom = false
+        case .pop where useZoomForPop:
             return ZoomTransition(operation: operation, sourceFrame: ZoomTransitionContext.shared.lastPushSourceFrame)
         case .push where useLeftToRightForPush:
             return LeftToRightTransition(operation: operation)
@@ -162,10 +160,7 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
         } else if operation == .pop {
             container.insertSubview(toView, belowSubview: fromView)
             toView.frame = bounds
-            // toView is already at .identity — push completion resets it before removal.
-            // Don't touch toView so card positions stay stable and fromView lands exactly.
             fromView.clipsToBounds = true
-            // Start at the device screen radius so it matches the normal full-screen appearance.
             fromView.layer.cornerRadius = screenCornerRadius
 
             UIView.animate(
@@ -178,8 +173,6 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
             } completion: { _ in
                 let cancelled = transitionContext.transitionWasCancelled
                 if cancelled {
-                    // Only reset state if the transition was cancelled — otherwise
-                    // resetting before completeTransition causes a one-frame snap to full-screen.
                     fromView.transform = .identity
                     fromView.layer.cornerRadius = 0
                     fromView.clipsToBounds = false

@@ -12,10 +12,6 @@ public class ZoomTransitionContext {
     /// Captured during push, reused during the corresponding pop.
     var lastPushSourceFrame: CGRect = .zero
 
-    /// Set synchronously when a zoom push animation begins, so pop can use zoom
-    /// even before SwiftUI's async updateUIViewController cycle runs.
-    var wasLastPushZoom: Bool = false
-
     /// Called on the main thread when a pop transition successfully completes.
     /// Set this before calling pushZoom to receive a callback when the user returns.
     public var onPopCompleted: (() -> Void)?
