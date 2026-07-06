@@ -1,6 +1,14 @@
 import SwiftUI
 
 #if os(iOS)
+
+private struct ZoomSourceFrameKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
+    }
+}
+
 /// Prepares a view as the source element for a `pushZoom` navigation.
 ///
 /// Pass your `pushZoom` call as the trailing closure — the modifier sets the source frame
@@ -25,11 +33,13 @@ public struct ZoomSourceModifier: ViewModifier {
             .animation(.spring(response: 0.25, dampingFraction: 0.55), value: isHighlighted)
             .background(
                 GeometryReader { geo in
-                    Color.clear.onAppear {
-                        frame = geo.frame(in: .global)
-                    }
+                    Color.clear
+                        .preference(key: ZoomSourceFrameKey.self, value: geo.frame(in: .global))
                 }
             )
+            .onPreferenceChange(ZoomSourceFrameKey.self) { newFrame in
+                frame = newFrame
+            }
             .onTapGesture {
                 ZoomTransitionContext.shared.sourceFrame = frame
                 if highlightOnReturn {
