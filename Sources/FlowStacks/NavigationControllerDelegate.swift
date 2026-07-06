@@ -3,6 +3,29 @@ import SwiftUI
 #if os(iOS)
 import UIKit
 
+// How a view controller was pushed, remembered on the view controller itself.
+// The delegate's push/pop flags are rewritten by every SwiftUI update of every
+// router node sharing the navigation controller — including nested Routers
+// (`.showing` coordinators) inside a pushed screen, which know nothing about how
+// their container was pushed and overwrite the flags with `false`. A pop decided
+// from those flags therefore loses its custom animation whenever the pushed
+// screen hosts a nested router. The tag on the departing view controller can't
+// be clobbered by anyone, so pops always mirror their push.
+private enum PushTransitionStyle {
+    case plain
+    case leftToRight
+    case zoom
+}
+
+private var pushTransitionStyleKey: UInt8 = 0
+
+private extension UIViewController {
+    var pushTransitionStyle: PushTransitionStyle {
+        get { objc_getAssociatedObject(self, &pushTransitionStyleKey) as? PushTransitionStyle ?? .plain }
+        set { objc_setAssociatedObject(self, &pushTransitionStyleKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+    }
+}
+
 class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelegate {
     var useLeftToRightForPush: Bool = false
     var useLeftToRightForPop: Bool = false
@@ -17,14 +40,23 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
     ) -> UIViewControllerAnimatedTransitioning? {
         switch operation {
         case .push where useZoomForPush:
-            let frame = ZoomTransitionContext.shared.sourceFrame
-            return ZoomTransition(operation: operation, sourceFrame: frame)
-        case .pop where useZoomForPop:
-            return ZoomTransition(operation: operation, sourceFrame: ZoomTransitionContext.shared.lastPushSourceFrame)
+            toVC.pushTransitionStyle = .zoom
+            return ZoomTransition(operation: operation, sourceFrame: ZoomTransitionContext.shared.sourceFrame)
         case .push where useLeftToRightForPush:
+            toVC.pushTransitionStyle = .leftToRight
             return LeftToRightTransition(operation: operation)
-        case .pop where useLeftToRightForPop:
-            return LeftToRightTransition(operation: operation)
+        case .push:
+            toVC.pushTransitionStyle = .plain
+            return nil
+        case .pop:
+            switch fromVC.pushTransitionStyle {
+            case .zoom:
+                return ZoomTransition(operation: operation, sourceFrame: ZoomTransitionContext.shared.lastPushSourceFrame)
+            case .leftToRight:
+                return LeftToRightTransition(operation: operation)
+            case .plain:
+                return nil
+            }
         default:
             return nil
         }
