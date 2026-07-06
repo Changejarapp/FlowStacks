@@ -205,16 +205,19 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
         toView.center = CGPoint(x: cardFrame.width / 2, y: cardFrame.height / 2)
 
         // The card's own pixels, overlaid on the portal so the card visibly morphs
-        // into the destination rather than the destination popping in.
+        // into the destination rather than the destination popping in. Kept at the
+        // card's natural size — stretching it with the growing portal magnifies the
+        // card's content, which reads as the card blowing up.
         let cardSnapshot = fromView.resizableSnapshotView(from: cardFrame, afterScreenUpdates: false, withCapInsets: .zero)
         if let cardSnapshot {
-            cardSnapshot.frame = portal.bounds
-            cardSnapshot.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            cardSnapshot.frame = CGRect(origin: .zero, size: cardFrame.size)
             portal.addSubview(cardSnapshot)
         }
 
-        UIView.animate(withDuration: pushDuration * 0.35, delay: 0, options: .curveEaseOut) {
+        UIView.animate(withDuration: pushDuration * 0.22, delay: 0, options: .curveEaseOut) {
             cardSnapshot?.alpha = 0
+        }
+        UIView.animate(withDuration: pushDuration * 0.35, delay: 0, options: .curveEaseOut) {
             shadow.alpha = 1
         }
 
