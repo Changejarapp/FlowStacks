@@ -217,7 +217,8 @@ struct QuickActionCardCell: View {
                         .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
         )
-        .zoomSource(highlightOnReturn: true) { onTap() }
+        .zoomTapSource(highlightOnReturn: true)
+        .onTapGesture { onTap() }
     }
 }
 
@@ -241,7 +242,8 @@ struct FeatureCardCell: View {
         .frame(width: 180, height: 120)
         .background(card.color)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .zoomSource(highlightOnReturn: true) { onTap() }
+        .zoomTapSource(highlightOnReturn: true)
+        .onTapGesture { onTap() }
     }
 }
 
