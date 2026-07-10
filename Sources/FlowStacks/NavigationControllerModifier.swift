@@ -9,6 +9,8 @@ struct NavigationControllerModifier: ViewModifier {
     let useLeftToRightForPop: Bool
     let useZoomForPush: Bool
     let useZoomForPop: Bool
+    let useBottomToTopForPush: Bool
+    let useBottomToTopForPop: Bool
 
     func body(content: Content) -> some View {
         content
@@ -17,7 +19,9 @@ struct NavigationControllerModifier: ViewModifier {
                 useLeftToRightForPush: useLeftToRightForPush,
                 useLeftToRightForPop: useLeftToRightForPop,
                 useZoomForPush: useZoomForPush,
-                useZoomForPop: useZoomForPop
+                useZoomForPop: useZoomForPop,
+                useBottomToTopForPush: useBottomToTopForPush,
+                useBottomToTopForPop: useBottomToTopForPop
             ))
     }
 }
@@ -28,6 +32,8 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
     let useLeftToRightForPop: Bool
     let useZoomForPush: Bool
     let useZoomForPop: Bool
+    let useBottomToTopForPush: Bool
+    let useBottomToTopForPop: Bool
 
     func makeUIViewController(context: Context) -> UIViewController {
         let viewController = UIViewController()
@@ -39,6 +45,8 @@ struct NavigationControllerAccessor: UIViewControllerRepresentable {
         delegate.useLeftToRightForPop = useLeftToRightForPop
         delegate.useZoomForPush = useZoomForPush
         delegate.useZoomForPop = useZoomForPop
+        delegate.useBottomToTopForPush = useBottomToTopForPush
+        delegate.useBottomToTopForPop = useBottomToTopForPop
         if let navigationController = uiViewController.navigationController {
             navigationController.delegate = delegate
         } else {
@@ -57,7 +65,9 @@ extension View {
         useLeftToRightForPush: Bool,
         useLeftToRightForPop: Bool,
         useZoomForPush: Bool,
-        useZoomForPop: Bool
+        useZoomForPop: Bool,
+        useBottomToTopForPush: Bool,
+        useBottomToTopForPop: Bool
     ) -> some View {
         #if os(iOS)
         let delegate = CustomNavigationControllerDelegate()
@@ -66,7 +76,9 @@ extension View {
             useLeftToRightForPush: useLeftToRightForPush,
             useLeftToRightForPop: useLeftToRightForPop,
             useZoomForPush: useZoomForPush,
-            useZoomForPop: useZoomForPop
+            useZoomForPop: useZoomForPop,
+            useBottomToTopForPush: useBottomToTopForPush,
+            useBottomToTopForPop: useBottomToTopForPop
         ))
         #else
         return self

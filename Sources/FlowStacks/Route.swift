@@ -16,6 +16,12 @@ public enum Route<Screen> {
   /// - Parameter screen: the screen to be shown.
   case pushZoom(Screen)
 
+  /// A push navigation with a bottom-to-top animation (the new screen slides up and covers
+  /// the current screen, which stays static underneath — e.g. Netflix's notifications push).
+  /// Only valid if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: the screen to be shown.
+  case pushBottomToTop(Screen)
+
   /// A sheet presentation.
   /// - Parameter screen: the screen to be shown.
   /// - Parameter embedInNavigationView: whether the presented screen should be embedded in a `NavigationView`.
@@ -39,7 +45,7 @@ public enum Route<Screen> {
   public var screen: Screen {
     get {
       switch self {
-      case .push(let screen), .pushLeftToRight(let screen), .pushZoom(let screen), .sheet(let screen, _, _), .cover(let screen, _, _):
+      case .push(let screen), .pushLeftToRight(let screen), .pushZoom(let screen), .pushBottomToTop(let screen), .sheet(let screen, _, _), .cover(let screen, _, _):
         return screen
       }
     }
@@ -51,6 +57,8 @@ public enum Route<Screen> {
         self = .pushLeftToRight(newValue)
       case .pushZoom:
         self = .pushZoom(newValue)
+      case .pushBottomToTop:
+        self = .pushBottomToTop(newValue)
       case .sheet(_, let embedInNavigationView, let onDismiss):
         self = .sheet(newValue, embedInNavigationView: embedInNavigationView, onDismiss: onDismiss)
         #if os(macOS)
@@ -65,7 +73,7 @@ public enum Route<Screen> {
   /// Whether the presented screen should be embedded in a `NavigationView`.
   public var embedInNavigationView: Bool {
     switch self {
-    case .push, .pushLeftToRight, .pushZoom:
+    case .push, .pushLeftToRight, .pushZoom, .pushBottomToTop:
       return false
     case .sheet(_, let embedInNavigationView, _), .cover(_, let embedInNavigationView, _):
       return embedInNavigationView
@@ -75,7 +83,7 @@ public enum Route<Screen> {
   /// Whether the route is presented (via a sheet or cover presentation).
   public var isPresented: Bool {
     switch self {
-    case .push, .pushLeftToRight, .pushZoom:
+    case .push, .pushLeftToRight, .pushZoom, .pushBottomToTop:
       return false
     case .sheet, .cover:
       return true
@@ -90,6 +98,8 @@ public enum Route<Screen> {
       return .pushLeftToRight(transform(screen))
     case .pushZoom:
       return .pushZoom(transform(screen))
+    case .pushBottomToTop:
+      return .pushBottomToTop(transform(screen))
     case .sheet(_, let embedInNavigationView, let onDismiss):
       return .sheet(transform(screen), embedInNavigationView: embedInNavigationView, onDismiss: onDismiss)
 #if os(macOS)

@@ -15,6 +15,7 @@ private enum PushTransitionStyle {
     case plain
     case leftToRight
     case zoom
+    case bottomToTop
 }
 
 private var pushTransitionStyleKey: UInt8 = 0
@@ -31,6 +32,8 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
     var useLeftToRightForPop: Bool = false
     var useZoomForPush: Bool = false
     var useZoomForPop: Bool = false
+    var useBottomToTopForPush: Bool = false
+    var useBottomToTopForPop: Bool = false
 
     func navigationController(
         _ navigationController: UINavigationController,
@@ -45,6 +48,9 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
         case .push where useLeftToRightForPush:
             toVC.pushTransitionStyle = .leftToRight
             return LeftToRightTransition(operation: operation)
+        case .push where useBottomToTopForPush:
+            toVC.pushTransitionStyle = .bottomToTop
+            return BottomToTopTransition(operation: operation)
         case .push:
             toVC.pushTransitionStyle = .plain
             return nil
@@ -54,6 +60,8 @@ class CustomNavigationControllerDelegate: NSObject, UINavigationControllerDelega
                 return ZoomTransition(operation: operation, sourceFrame: ZoomTransitionContext.shared.lastPushSourceFrame)
             case .leftToRight:
                 return LeftToRightTransition(operation: operation)
+            case .bottomToTop:
+                return BottomToTopTransition(operation: operation)
             case .plain:
                 return nil
             }
@@ -104,6 +112,54 @@ class LeftToRightTransition: NSObject, UIViewControllerAnimatedTransitioning {
             UIView.animate(withDuration: duration, delay: 0, options: .curveEaseInOut) {
                 toView.frame = container.bounds
                 fromView.frame = container.bounds.offsetBy(dx: -container.bounds.width, dy: 0)
+            } completion: { finished in
+                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            }
+        }
+    }
+}
+
+// Netflix notifications-style push: the new screen slides up from the bottom and
+// covers the current screen, which stays fixed underneath rather than parallaxing
+// away (unlike LeftToRightTransition, where both views move).
+class BottomToTopTransition: NSObject, UIViewControllerAnimatedTransitioning {
+    let operation: UINavigationController.Operation
+    var duration: TimeInterval = 0.4
+
+    init(operation: UINavigationController.Operation) {
+        self.operation = operation
+    }
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        return duration
+    }
+
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        guard let fromView = transitionContext.view(forKey: .from),
+              let toView = transitionContext.view(forKey: .to) else {
+            transitionContext.completeTransition(false)
+            return
+        }
+
+        let container = transitionContext.containerView
+
+        if operation == .push {
+            // fromView stays put — it's being covered, not displaced.
+            container.addSubview(toView)
+            toView.frame = container.bounds.offsetBy(dx: 0, dy: container.bounds.height)
+
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseOut) {
+                toView.frame = container.bounds
+            } completion: { finished in
+                transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
+            }
+        } else if operation == .pop {
+            // toView is already in its resting position underneath; only fromView moves.
+            container.insertSubview(toView, belowSubview: fromView)
+            toView.frame = container.bounds
+
+            UIView.animate(withDuration: duration, delay: 0, options: .curveEaseIn) {
+                fromView.frame = container.bounds.offsetBy(dx: 0, dy: container.bounds.height)
             } completion: { finished in
                 transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
             }

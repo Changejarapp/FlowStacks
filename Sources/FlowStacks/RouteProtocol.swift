@@ -8,6 +8,7 @@ public protocol RouteProtocol {
   static func push(_ screen: Screen) -> Self
   static func pushLeftToRight(_ screen: Screen) -> Self
   static func pushZoom(_ screen: Screen) -> Self
+  static func pushBottomToTop(_ screen: Screen) -> Self
   static func sheet(_ screen: Screen, embedInNavigationView: Bool, onDismiss: (() -> Void)?) -> Self
 #if os(macOS)
 // Full-screen cover unavailable.
