@@ -54,19 +54,31 @@ private enum ZoomSourceTouchObserver {
         // comparing area can't tell them apart, real z-order can. With only one
         // candidate under the touch (the common case), no comparison happens at all,
         // so unambiguous taps are unaffected.
-        var best: (box: ZoomSourceFrameBox, frame: CGRect, view: UIView)?
+        // A touch actually inside a source always beats a tolerance-only match —
+        // otherwise a tap near a card's edge can anchor the zoom to the neighbouring
+        // card whose inflated frame merely grazes the point, while the tap gesture
+        // (exact bounds) opens the touched card. Z-order only settles ties within
+        // the same tier; among tolerance-only matches, the nearest frame wins.
+        var best: (box: ZoomSourceFrameBox, frame: CGRect, view: UIView, exact: Bool)?
         for box in boxes.allObjects {
             guard let view = box.view, view.window === window,
                   let frame = box.windowFrame,
                   // Widened only for the hit-test — `frame` itself (used below as the
                   // animation's source rect) stays exact.
                   frame.insetBy(dx: -matchTolerance, dy: -matchTolerance).contains(point) else { continue }
+            let exact = frame.contains(point)
             if let current = best {
-                if isInFront(view, of: current.view) == true {
-                    best = (box, frame, view)
+                if exact != current.exact {
+                    if exact { best = (box, frame, view, true) }
+                } else if exact {
+                    if isInFront(view, of: current.view) == true {
+                        best = (box, frame, view, true)
+                    }
+                } else if distance(from: point, to: frame) < distance(from: point, to: current.frame) {
+                    best = (box, frame, view, false)
                 }
             } else {
-                best = (box, frame, view)
+                best = (box, frame, view, exact)
             }
         }
         if let best {
@@ -84,6 +96,12 @@ private enum ZoomSourceTouchObserver {
             // lastPushSourceFrame, so zeroing sourceFrame never affects them.)
             ZoomTransitionContext.shared.sourceFrame = .zero
         }
+    }
+
+    private static func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+        let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
+        let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
+        return hypot(dx, dy)
     }
 
     /// True if `a` is rendered in front of `b`. A view nested inside another always
