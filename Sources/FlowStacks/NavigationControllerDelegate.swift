@@ -379,12 +379,9 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
         fromView.frame = bounds
         portal.addSubview(fromView)
 
-        // Natural size, centered in the portal, riding its shrink — keeps the card
-        // pixels glued to the shrinking screen instead of stretching (magnifies) or
-        // sitting parked at the destination (screen visibly collapses onto it).
         if let cardSnapshot {
-            cardSnapshot.frame = CGRect(origin: .zero, size: cardFrame.size)
-            cardSnapshot.center = CGPoint(x: bounds.midX, y: bounds.midY)
+            cardSnapshot.frame = portal.bounds
+            cardSnapshot.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             cardSnapshot.alpha = 0
             portal.addSubview(cardSnapshot)
         }
@@ -410,7 +407,6 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
             shadow.layer.cornerRadius = self.cardCornerRadius
             fromView.transform = CGAffineTransform(scaleX: fillScale, y: fillScale)
             fromView.center = CGPoint(x: cardFrame.width / 2, y: cardFrame.height / 2)
-            cardSnapshot?.center = CGPoint(x: cardFrame.width / 2, y: cardFrame.height / 2)
             toView.transform = .identity
             dim.alpha = 0
         } completion: { _ in
