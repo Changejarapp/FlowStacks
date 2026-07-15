@@ -26,6 +26,7 @@ private final class ZoomSourceFrameBox {
 /// gesture — scroll views, buttons, and tap gestures are completely unaffected.
 private enum ZoomSourceTouchObserver {
     private static let boxes = NSHashTable<ZoomSourceFrameBox>.weakObjects()
+    private static let occluders = NSHashTable<ZoomSourceFrameBox>.weakObjects()
     private static let observedWindows = NSHashTable<UIWindow>.weakObjects()
 
     // A view's reported frame is its final, settled position — UIKit applies that the
@@ -34,6 +35,10 @@ private enum ZoomSourceTouchObserver {
     // outside the frame we read. This only widens which sources are considered a match;
     // the exact (unpadded) frame is still what's used for the zoom animation itself.
     private static let matchTolerance: CGFloat = 20
+
+    static func registerOccluder(_ box: ZoomSourceFrameBox) {
+        occluders.add(box)
+    }
 
     static func register(_ box: ZoomSourceFrameBox, in window: UIWindow) {
         boxes.add(box)
@@ -82,7 +87,7 @@ private enum ZoomSourceTouchObserver {
             }
         }
         if let best {
-            ZoomTransitionContext.shared.sourceFrame = best.frame
+            ZoomTransitionContext.shared.sourceFrame = visibleRect(of: best.frame, cardView: best.view, in: window)
             // Clear any previous registration, then let this card re-register its
             // bounce (onTouched is nil when highlightOnReturn is false).
             ZoomTransitionContext.shared.onPopCompleted = nil
@@ -96,6 +101,45 @@ private enum ZoomSourceTouchObserver {
             // lastPushSourceFrame, so zeroing sourceFrame never affects them.)
             ZoomTransitionContext.shared.sourceFrame = .zero
         }
+    }
+
+    /// The part of the card actually visible on screen, with any registered occluder
+    /// (e.g. a floating tab bar drawn over scrolling content) subtracted. Zooming
+    /// to/from this rect keeps occluder pixels out of the transition's snapshots —
+    /// otherwise a card half under the tab bar drags magnified tab bar pixels
+    /// through the whole animation.
+    private static func visibleRect(of frame: CGRect, cardView: UIView, in window: UIWindow) -> CGRect {
+        var visible = frame
+        for occluder in occluders.allObjects {
+            guard let occluderView = occluder.view, occluderView.window === window,
+                  let occluderFrame = occluder.windowFrame,
+                  visible.intersects(occluderFrame),
+                  // Only views actually drawn over the card can hide it.
+                  isInFront(occluderView, of: cardView) == true else { continue }
+            let remaining = subtracting(occluderFrame, from: visible)
+            // A fully covered card can't have been tapped; if subtraction ever
+            // degenerates, fall back to the unclamped frame rather than zooming
+            // into an empty rect.
+            guard !remaining.isEmpty else { return frame }
+            visible = remaining
+        }
+        return visible
+    }
+
+    /// The largest rectangle left over after cutting `occluder` out of `rect`.
+    /// A single straight cut (top/bottom/left/right of the overlap) is enough here:
+    /// occluding bars run along a full edge of the card, so the true remainder is
+    /// rectangular.
+    private static func subtracting(_ occluder: CGRect, from rect: CGRect) -> CGRect {
+        let overlap = rect.intersection(occluder)
+        guard !overlap.isEmpty else { return rect }
+        let candidates = [
+            CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: max(0, overlap.minY - rect.minY)),
+            CGRect(x: rect.minX, y: overlap.maxY, width: rect.width, height: max(0, rect.maxY - overlap.maxY)),
+            CGRect(x: rect.minX, y: rect.minY, width: max(0, overlap.minX - rect.minX), height: rect.height),
+            CGRect(x: overlap.maxX, y: rect.minY, width: max(0, rect.maxX - overlap.maxX), height: rect.height),
+        ]
+        return candidates.max { $0.width * $0.height < $1.width * $1.height } ?? rect
     }
 
     private static func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
@@ -169,6 +213,30 @@ private struct ZoomSourceProbe: UIViewRepresentable {
     func updateUIView(_ uiView: ZoomSourceProbeView, context: Context) {}
 }
 
+private final class ZoomOccluderProbeView: UIView {
+    var box: ZoomSourceFrameBox?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        guard window != nil, let box else { return }
+        ZoomSourceTouchObserver.registerOccluder(box)
+    }
+}
+
+private struct ZoomOccluderProbe: UIViewRepresentable {
+    let box: ZoomSourceFrameBox
+
+    func makeUIView(context: Context) -> ZoomOccluderProbeView {
+        let view = ZoomOccluderProbeView()
+        view.isUserInteractionEnabled = false
+        view.box = box
+        box.view = view
+        return view
+    }
+
+    func updateUIView(_ uiView: ZoomOccluderProbeView, context: Context) {}
+}
+
 /// Marks a view as the source element for a `pushZoom` navigation, without taking
 /// over its tap handling — existing Buttons / gesture modifiers keep working, and no
 /// gesture is added to the view. The frame is recorded at touch-down by a passive
@@ -207,12 +275,30 @@ public struct ZoomTapSourceModifier: ViewModifier {
     }
 }
 
+/// See `View.zoomOccluder()`.
+public struct ZoomOccluderModifier: ViewModifier {
+    @State private var box = ZoomSourceFrameBox()
+
+    public func body(content: Content) -> some View {
+        content.background(ZoomOccluderProbe(box: box))
+    }
+}
+
 public extension View {
     /// Marks this view as the zoom source without taking over its tap handling.
     /// - Parameter highlightOnReturn: Bounces the view when the user navigates back
     ///   to it via the zoom pop. Defaults to `true`.
     func zoomTapSource(highlightOnReturn: Bool = true) -> some View {
         modifier(ZoomTapSourceModifier(highlightOnReturn: highlightOnReturn))
+    }
+
+    /// Marks this view as an occluder for zoom transitions — a bar or overlay drawn
+    /// on top of scrolling content that can partially cover a `zoomTapSource` (e.g. a
+    /// floating tab bar). When a covered card is tapped, the zoom animates to/from
+    /// only the card's visible portion, so the occluder's pixels never get captured
+    /// and magnified by the transition.
+    func zoomOccluder() -> some View {
+        modifier(ZoomOccluderModifier())
     }
 }
 #endif

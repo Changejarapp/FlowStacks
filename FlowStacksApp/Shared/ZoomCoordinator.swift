@@ -40,18 +40,55 @@ struct ZoomCoordinator: View {
                 FeatureCardDetailView(card: card)
             }
         }
+        // The home feed draws its own overlaying bottom bar; the app-level TabView
+        // bar underneath it would just stack a second bar.
+        .hideSystemTabBar()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func hideSystemTabBar() -> some View {
+        if #available(iOS 16.0, *) {
+            self.toolbar(.hidden, for: .tabBar)
+        } else {
+            self
+        }
     }
 }
 
 // MARK: - Home Feed
 
+enum HomeTab: String, CaseIterable {
+    case home = "Home"
+    case rewards = "Rewards"
+    case profile = "Profile"
+
+    var icon: String {
+        switch self {
+        case .home: return "house.fill"
+        case .rewards: return "gift.fill"
+        case .profile: return "person.fill"
+        }
+    }
+}
+
 struct HomeFeedView: View {
     @EnvironmentObject var navigator: FlowNavigator<ZoomScreen>
+    @State private var selectedTab: HomeTab = .home
 
     let quickCards: [QuickCard] = [
         QuickCard(id: 1, title: "Buy Gold", subtitle: "Best price today", icon: "star.fill", color: Color(red: 0.9, green: 0.7, blue: 0.1)),
         QuickCard(id: 2, title: "Withdraw", subtitle: "Instant transfer", icon: "arrow.down.circle.fill", color: Color(red: 0.3, green: 0.7, blue: 0.5)),
         QuickCard(id: 3, title: "SIP", subtitle: "Weekly savings", icon: "chart.line.uptrend.xyaxis", color: Color(red: 0.4, green: 0.5, blue: 0.9)),
+    ]
+
+    // Second row near the bottom of the feed — easy to park half-under the tab bar
+    // to exercise the zoomOccluder clamping.
+    let moreCards: [QuickCard] = [
+        QuickCard(id: 4, title: "Refer", subtitle: "Invite & earn", icon: "person.2.fill", color: Color(red: 0.9, green: 0.4, blue: 0.5)),
+        QuickCard(id: 5, title: "Insure", subtitle: "Protect savings", icon: "shield.fill", color: Color(red: 0.4, green: 0.8, blue: 0.9)),
+        QuickCard(id: 6, title: "Loans", subtitle: "Low interest", icon: "banknote.fill", color: Color(red: 0.7, green: 0.6, blue: 0.9)),
     ]
 
     let featureCards: [FeatureCard] = [
@@ -61,6 +98,26 @@ struct HomeFeedView: View {
     ]
 
     var body: some View {
+        // Tab bar overlays the scrolling content (like Jar's bottomNavView), so cards
+        // can sit half-clipped beneath it — the zoomOccluder test case.
+        ZStack(alignment: .bottom) {
+            switch selectedTab {
+            case .home:
+                feedContent
+            case .rewards:
+                placeholderTab(title: "Rewards", icon: "gift.fill")
+            case .profile:
+                placeholderTab(title: "Profile", icon: "person.fill")
+            }
+
+            bottomBar
+        }
+        .background(Color(red: 0.1, green: 0.07, blue: 0.18).ignoresSafeArea())
+        .navigationTitle("Home")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    var feedContent: some View {
         ScrollView {
             VStack(spacing: 0) {
                 lockerBanner
@@ -70,6 +127,8 @@ struct HomeFeedView: View {
                     featureCardsSection
                     Divider().background(Color.white.opacity(0.1))
                     savingsSummarySection
+                    Divider().background(Color.white.opacity(0.1))
+                    moreActionsSection
                     Spacer(minLength: 40)
                 }
                 .padding(.top, 20)
@@ -78,9 +137,44 @@ struct HomeFeedView: View {
                 .padding(.top, -24)
             }
         }
-        .background(Color(red: 0.1, green: 0.07, blue: 0.18).ignoresSafeArea())
-        .navigationTitle("Home")
-        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: Bottom Tab Bar
+
+    var bottomBar: some View {
+        HStack {
+            ForEach(HomeTab.allCases, id: \.self) { tab in
+                VStack(spacing: 4) {
+                    Image(systemName: tab.icon)
+                        .font(.system(size: 18, weight: .semibold))
+                    Text(tab.rawValue)
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(selectedTab == tab ? .white : .white.opacity(0.45))
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture { selectedTab = tab }
+            }
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .background(
+            Color(red: 0.16, green: 0.12, blue: 0.26)
+                .ignoresSafeArea(edges: .bottom)
+        )
+        .zoomOccluder()
+    }
+
+    func placeholderTab(title: String, icon: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 44))
+                .foregroundColor(.white.opacity(0.3))
+            Text(title)
+                .font(.title2.bold())
+                .foregroundColor(.white.opacity(0.6))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: Locker Banner
@@ -147,6 +241,26 @@ struct HomeFeedView: View {
                 }
                 .padding(.horizontal, 16)
             }
+        }
+    }
+
+    // MARK: More Actions
+
+    var moreActionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("More Actions")
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.white.opacity(0.6))
+                .padding(.horizontal, 20)
+
+            HStack(spacing: 12) {
+                ForEach(moreCards) { card in
+                    QuickActionCardCell(card: card) {
+                        navigator.pushZoom(.detail(card))
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
         }
     }
 
