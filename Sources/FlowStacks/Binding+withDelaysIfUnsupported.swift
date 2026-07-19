@@ -81,9 +81,13 @@ public extension Binding where Value: Collection, Value.Element: RouteProtocol {
       return
     }
     self.wrappedValue = firstStep
+    let remainingSteps = Array(steps.dropFirst())
+    guard !remainingSteps.isEmpty else {
+      return
+    }
     do {
       try await Task.sleep(nanoseconds: UInt64(0.65 * 1_000_000_000))
-      await self.scheduleRemainingSteps(steps: Array(steps.dropFirst()))
+      await self.scheduleRemainingSteps(steps: remainingSteps)
     }
     catch {}
   }
