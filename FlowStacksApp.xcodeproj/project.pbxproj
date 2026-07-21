@@ -27,8 +27,18 @@
 		52C5CCDF286EE92B0075ABA7 /* Deeplink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C5CCDD286EE92B0075ABA7 /* Deeplink.swift */; };
 		77F136ED282E45E0008A6A02 /* ParentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F136EC282E45DF008A6A02 /* ParentCoordinator.swift */; };
 		77F136EE282E45E0008A6A02 /* ParentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F136EC282E45DF008A6A02 /* ParentCoordinator.swift */; };
-		AA0000012A0000000000AA01 /* ZoomCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002A0000000000AA01 /* ZoomCoordinator.swift */; };
-		AA0000022A0000000000AA01 /* ZoomCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002A0000000000AA01 /* ZoomCoordinator.swift */; };
+		AA0000012A0000000000AA01 /* NavPlaygroundCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002A0000000000AA01 /* NavPlaygroundCoordinator.swift */; };
+		AA0000022A0000000000AA01 /* NavPlaygroundCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002A0000000000AA01 /* NavPlaygroundCoordinator.swift */; };
+		AA0000112A0000000000AA01 /* NavPlaygroundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000102A0000000000AA01 /* NavPlaygroundModels.swift */; };
+		AA0000122A0000000000AA01 /* NavPlaygroundModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000102A0000000000AA01 /* NavPlaygroundModels.swift */; };
+		AA0000142A0000000000AA01 /* NavPlaygroundCardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000132A0000000000AA01 /* NavPlaygroundCardCell.swift */; };
+		AA0000152A0000000000AA01 /* NavPlaygroundCardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000132A0000000000AA01 /* NavPlaygroundCardCell.swift */; };
+		AA0000172A0000000000AA01 /* NavPlaygroundBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000162A0000000000AA01 /* NavPlaygroundBanner.swift */; };
+		AA0000182A0000000000AA01 /* NavPlaygroundBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000162A0000000000AA01 /* NavPlaygroundBanner.swift */; };
+		AA00001A2A0000000000AA01 /* NavPlaygroundHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000192A0000000000AA01 /* NavPlaygroundHomeView.swift */; };
+		AA00001B2A0000000000AA01 /* NavPlaygroundHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000192A0000000000AA01 /* NavPlaygroundHomeView.swift */; };
+		AA00001D2A0000000000AA01 /* PushStyleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C2A0000000000AA01 /* PushStyleDetailView.swift */; };
+		AA00001E2A0000000000AA01 /* PushStyleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00001C2A0000000000AA01 /* PushStyleDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,7 +54,12 @@
 		52C5CCDD286EE92B0075ABA7 /* Deeplink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deeplink.swift; sourceTree = "<group>"; };
 		52E2C8F02A7265A00042C495 /* FlowStacks */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlowStacks; path = .; sourceTree = "<group>"; };
 		77F136EC282E45DF008A6A02 /* ParentCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentCoordinator.swift; sourceTree = "<group>"; };
-		AA0000002A0000000000AA01 /* ZoomCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomCoordinator.swift; sourceTree = "<group>"; };
+		AA0000002A0000000000AA01 /* NavPlaygroundCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavPlaygroundCoordinator.swift; sourceTree = "<group>"; };
+		AA0000102A0000000000AA01 /* NavPlaygroundModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavPlaygroundModels.swift; sourceTree = "<group>"; };
+		AA0000132A0000000000AA01 /* NavPlaygroundCardCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavPlaygroundCardCell.swift; sourceTree = "<group>"; };
+		AA0000162A0000000000AA01 /* NavPlaygroundBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavPlaygroundBanner.swift; sourceTree = "<group>"; };
+		AA0000192A0000000000AA01 /* NavPlaygroundHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavPlaygroundHomeView.swift; sourceTree = "<group>"; };
+		AA00001C2A0000000000AA01 /* PushStyleDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushStyleDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,7 +138,12 @@
 				525C7340277BC788009CBD67 /* ShowingCoordinator.swift */,
 				525C73392774BDB7009CBD67 /* BindingCoordinator.swift */,
 				52C5CCDD286EE92B0075ABA7 /* Deeplink.swift */,
-				AA0000002A0000000000AA01 /* ZoomCoordinator.swift */,
+				AA0000002A0000000000AA01 /* NavPlaygroundCoordinator.swift */,
+				AA0000102A0000000000AA01 /* NavPlaygroundModels.swift */,
+				AA0000132A0000000000AA01 /* NavPlaygroundCardCell.swift */,
+				AA0000162A0000000000AA01 /* NavPlaygroundBanner.swift */,
+				AA0000192A0000000000AA01 /* NavPlaygroundHomeView.swift */,
+				AA00001C2A0000000000AA01 /* PushStyleDetailView.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -244,7 +264,12 @@
 				525C733A2774BDB7009CBD67 /* BindingCoordinator.swift in Sources */,
 				525C73372774BA6B009CBD67 /* NumberCoordinator.swift in Sources */,
 				525C7341277BC788009CBD67 /* ShowingCoordinator.swift in Sources */,
-				AA0000012A0000000000AA01 /* ZoomCoordinator.swift in Sources */,
+				AA0000012A0000000000AA01 /* NavPlaygroundCoordinator.swift in Sources */,
+				AA0000112A0000000000AA01 /* NavPlaygroundModels.swift in Sources */,
+				AA0000142A0000000000AA01 /* NavPlaygroundCardCell.swift in Sources */,
+				AA0000172A0000000000AA01 /* NavPlaygroundBanner.swift in Sources */,
+				AA00001A2A0000000000AA01 /* NavPlaygroundHomeView.swift in Sources */,
+				AA00001D2A0000000000AA01 /* PushStyleDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,7 +284,12 @@
 				525C733B2774BDB7009CBD67 /* BindingCoordinator.swift in Sources */,
 				525C73382774BA6B009CBD67 /* NumberCoordinator.swift in Sources */,
 				525C7342277BC788009CBD67 /* ShowingCoordinator.swift in Sources */,
-				AA0000022A0000000000AA01 /* ZoomCoordinator.swift in Sources */,
+				AA0000022A0000000000AA01 /* NavPlaygroundCoordinator.swift in Sources */,
+				AA0000122A0000000000AA01 /* NavPlaygroundModels.swift in Sources */,
+				AA0000152A0000000000AA01 /* NavPlaygroundCardCell.swift in Sources */,
+				AA0000182A0000000000AA01 /* NavPlaygroundBanner.swift in Sources */,
+				AA00001B2A0000000000AA01 /* NavPlaygroundHomeView.swift in Sources */,
+				AA00001E2A0000000000AA01 /* PushStyleDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

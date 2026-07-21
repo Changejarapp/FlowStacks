@@ -8,7 +8,7 @@ struct FlowStacksApp: App {
     case vmCoordinator
     case bindingCoordinator
     case showingCoordinator
-    case zoomCoordinator
+    case navPlaygroundCoordinator
   }
   
   @State var selectedTab: Tab = .numberCoordinator
@@ -31,9 +31,9 @@ struct FlowStacksApp: App {
         ShowingCoordinator()
           .tabItem { Text("Showing") }
           .tag(Tab.showingCoordinator)
-        ZoomCoordinator()
-          .tabItem { Text("Zoom") }
-          .tag(Tab.zoomCoordinator)
+        NavPlaygroundCoordinator()
+          .tabItem { Text("Playground") }
+          .tag(Tab.navPlaygroundCoordinator)
       }.onOpenURL { url in
         guard let deeplink = Deeplink(url: url) else { return }
         follow(deeplink)
