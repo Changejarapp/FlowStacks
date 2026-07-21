@@ -424,7 +424,7 @@ class ZoomTransition: NSObject, UIViewControllerAnimatedTransitioning {
             }
             transitionContext.completeTransition(!cancelled)
             if !cancelled {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     ZoomTransitionContext.shared.onPopCompleted?()
                     ZoomTransitionContext.shared.onPopCompleted = nil
                 }

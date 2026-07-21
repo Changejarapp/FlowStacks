@@ -24,6 +24,7 @@ private final class ZoomSourceFrameBox {
 /// of the card under the finger. Capture happens at the window level with a recognizer
 /// that fails instantly, so it can never delay, cancel, or compete with any other
 /// gesture — scroll views, buttons, and tap gestures are completely unaffected.
+@MainActor
 private enum ZoomSourceTouchObserver {
     private static let boxes = NSHashTable<ZoomSourceFrameBox>.weakObjects()
     private static let occluders = NSHashTable<ZoomSourceFrameBox>.weakObjects()

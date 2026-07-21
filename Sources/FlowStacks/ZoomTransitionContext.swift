@@ -3,6 +3,7 @@ import CoreGraphics
 
 /// Holds the source frame for zoom push/pop animations.
 /// Set `sourceFrame` in global screen coordinates before calling `pushZoom`.
+@MainActor
 public class ZoomTransitionContext {
     public static let shared = ZoomTransitionContext()
 
@@ -16,5 +17,5 @@ public class ZoomTransitionContext {
     /// Set this before calling pushZoom to receive a callback when the user returns.
     public var onPopCompleted: (() -> Void)?
 
-    public init() {}
+    private init() {}
 }
