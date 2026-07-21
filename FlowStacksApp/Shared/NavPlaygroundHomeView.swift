@@ -29,7 +29,7 @@ struct NavPlaygroundHomeView: View {
 
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Actions — one style each")
+            Text("Quick Actions — zoom")
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.white.opacity(0.6))
                 .padding(.horizontal, 20)
@@ -47,7 +47,7 @@ struct NavPlaygroundHomeView: View {
 
     private var featureCardsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Feature Cards — zoom")
+            Text("Feature Cards — one style each")
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(.white.opacity(0.6))
                 .padding(.horizontal, 20)
