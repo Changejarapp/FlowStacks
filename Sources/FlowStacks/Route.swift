@@ -11,6 +11,17 @@ public enum Route<Screen> {
   /// - Parameter screen: the screen to be shown.
   case pushLeftToRight(Screen)
 
+  /// A push navigation with a zoom/expand animation from the source frame in `ZoomTransitionContext.shared`.
+  /// Only valid if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: the screen to be shown.
+  case pushZoom(Screen)
+
+  /// A push navigation with a bottom-to-top animation (the new screen slides up and covers
+  /// the current screen, which stays static underneath — e.g. Netflix's notifications push).
+  /// Only valid if the most recently presented screen is embedded in a `NavigationView`.
+  /// - Parameter screen: the screen to be shown.
+  case pushBottomToTop(Screen)
+
   /// A sheet presentation.
   /// - Parameter screen: the screen to be shown.
   /// - Parameter embedInNavigationView: whether the presented screen should be embedded in a `NavigationView`.
@@ -23,18 +34,18 @@ public enum Route<Screen> {
   /// - Parameter onDismiss: A closure to be invoked when the screen is dismissed.
   @available(OSX, unavailable, message: "Not available on OS X.")
   case cover(Screen, embedInNavigationView: Bool, onDismiss: (() -> Void)? = nil)
-  
+
   /// The root of the stack. The presentation style is irrelevant as it will not be presented.
   /// - Parameter screen: the screen to be shown.
   public static func root(_ screen: Screen, embedInNavigationView: Bool = false) -> Route {
     return .sheet(screen, embedInNavigationView: embedInNavigationView, onDismiss: nil)
   }
-  
+
   /// The screen to be shown.
   public var screen: Screen {
     get {
       switch self {
-      case .push(let screen), .pushLeftToRight(let screen), .sheet(let screen, _, _), .cover(let screen, _, _):
+      case .push(let screen), .pushLeftToRight(let screen), .pushZoom(let screen), .pushBottomToTop(let screen), .sheet(let screen, _, _), .cover(let screen, _, _):
         return screen
       }
     }
@@ -44,6 +55,10 @@ public enum Route<Screen> {
         self = .push(newValue)
       case .pushLeftToRight:
         self = .pushLeftToRight(newValue)
+      case .pushZoom:
+        self = .pushZoom(newValue)
+      case .pushBottomToTop:
+        self = .pushBottomToTop(newValue)
       case .sheet(_, let embedInNavigationView, let onDismiss):
         self = .sheet(newValue, embedInNavigationView: embedInNavigationView, onDismiss: onDismiss)
         #if os(macOS)
@@ -54,11 +69,11 @@ public enum Route<Screen> {
       }
     }
   }
-  
+
   /// Whether the presented screen should be embedded in a `NavigationView`.
   public var embedInNavigationView: Bool {
     switch self {
-    case .push, .pushLeftToRight:
+    case .push, .pushLeftToRight, .pushZoom, .pushBottomToTop:
       return false
     case .sheet(_, let embedInNavigationView, _), .cover(_, let embedInNavigationView, _):
       return embedInNavigationView
@@ -68,19 +83,23 @@ public enum Route<Screen> {
   /// Whether the route is presented (via a sheet or cover presentation).
   public var isPresented: Bool {
     switch self {
-    case .push, .pushLeftToRight:
+    case .push, .pushLeftToRight, .pushZoom, .pushBottomToTop:
       return false
     case .sheet, .cover:
       return true
     }
   }
-  
+
   public func map<NewScreen>(_ transform: (Screen) -> NewScreen) -> Route<NewScreen> {
     switch self {
     case .push:
       return .push(transform(screen))
     case .pushLeftToRight:
       return .pushLeftToRight(transform(screen))
+    case .pushZoom:
+      return .pushZoom(transform(screen))
+    case .pushBottomToTop:
+      return .pushBottomToTop(transform(screen))
     case .sheet(_, let embedInNavigationView, let onDismiss):
       return .sheet(transform(screen), embedInNavigationView: embedInNavigationView, onDismiss: onDismiss)
 #if os(macOS)

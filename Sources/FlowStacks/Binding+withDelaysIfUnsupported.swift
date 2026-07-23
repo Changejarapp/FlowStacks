@@ -4,13 +4,13 @@ import SwiftUI
 /// The style with which a route is shown, i.e., if the route is pushed, presented
 /// as a sheet or presented as a full-screen cover.
 public enum RouteStyle: Hashable {
-  case push, pushLeftToRight, sheet(embedInNavigationView: Bool), cover(embedInNavigationView: Bool)
+  case push, pushLeftToRight, pushZoom, pushBottomToTop, sheet(embedInNavigationView: Bool), cover(embedInNavigationView: Bool)
 
   public var isSheet: Bool {
     switch self {
     case .sheet:
       return true
-    case .cover, .push, .pushLeftToRight:
+    case .cover, .push, .pushLeftToRight, .pushZoom, .pushBottomToTop:
       return false
     }
   }
@@ -19,7 +19,7 @@ public enum RouteStyle: Hashable {
     switch self {
     case .cover:
       return true
-    case .sheet, .push, .pushLeftToRight:
+    case .sheet, .push, .pushLeftToRight, .pushZoom, .pushBottomToTop:
       return false
     }
   }
@@ -34,6 +34,10 @@ public extension Route {
       return .push
     case .pushLeftToRight:
       return .pushLeftToRight
+    case .pushZoom:
+      return .pushZoom
+    case .pushBottomToTop:
+      return .pushBottomToTop
     case .sheet(_, let embedInNavigationView, _):
       return .sheet(embedInNavigationView: embedInNavigationView)
     case .cover(_, let embedInNavigationView, _):
@@ -151,7 +155,7 @@ public enum RouteSteps {
     // Pop extraneous pushed screens.
     while var popStep = steps.last, popStep.count > firstDivergingIndex {
       var popped: Route<Screen>? = popStep.popLast()
-      while (popped?.style == .push || popped?.style == .pushLeftToRight), popStep.count > firstDivergingIndex, (popStep.last?.style == .push || popStep.last?.style == .pushLeftToRight) {
+      while (popped?.style == .push || popped?.style == .pushLeftToRight || popped?.style == .pushZoom || popped?.style == .pushBottomToTop), popStep.count > firstDivergingIndex, (popStep.last?.style == .push || popStep.last?.style == .pushLeftToRight || popStep.last?.style == .pushZoom || popStep.last?.style == .pushBottomToTop) {
         popped = popStep.popLast()
       }
       steps.append(popStep)
