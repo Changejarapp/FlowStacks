@@ -6,14 +6,6 @@ fileprivate enum AllScreen<Screen> {
   case screen(Screen)
 }
 
-/// The root is the host view's own content, which its parent route already reports.
-extension AllScreen: ScreenWrapping {
-  var wrappedScreen: Any? {
-    guard case .screen(let screen) = self else { return nil }
-    return screen
-  }
-}
-
 public extension View {
   /// Allows a fixed root screen to push or present a number of additional routes. This is useful if the root screen
   /// never changes.
