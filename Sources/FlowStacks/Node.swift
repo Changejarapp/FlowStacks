@@ -138,7 +138,15 @@ indirect enum Node<Screen, V: View>: View {
       EmptyView()
     case .route(let route, _, _, _, let buildView):
       buildView(route.screen)
+        .modifier(ScreenAppearanceReporter(screen: Self.reportedScreen(route.screen)))
     }
+  }
+
+  private static func reportedScreen(_ screen: Screen) -> Any? {
+    if let wrapper = screen as? ScreenWrapping {
+      return wrapper.wrappedScreen
+    }
+    return screen
   }
 
   @ViewBuilder
