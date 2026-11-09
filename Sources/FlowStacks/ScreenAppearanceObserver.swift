@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 /// Reports which routed screen is on screen, e.g. for debug tooling.
-/// Unset by default, which costs one nil check per appear and disappear.
+/// Set it once at launch, before any routed screen renders; while unset, routed screens carry no reporter at all.
 @MainActor
 public enum ScreenAppearanceObserver {
   /// Called with the view built for a route (or a `showing` root) and a token unique to this presentation of it.
@@ -12,14 +12,12 @@ public enum ScreenAppearanceObserver {
 }
 
 struct ScreenAppearanceReporter: ViewModifier {
-  /// Nil when nothing observes, so unobserved apps never box the view.
-  let view: Any?
+  let view: Any
   @State private var token = UUID()
 
   func body(content: Content) -> some View {
     content
       .onAppear {
-        guard let view = view else { return }
         ScreenAppearanceObserver.onAppear?(view, token)
       }
       .onDisappear {
