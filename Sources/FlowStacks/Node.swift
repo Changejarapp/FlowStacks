@@ -137,7 +137,13 @@ indirect enum Node<Screen, V: View>: View {
     case .end:
       EmptyView()
     case .route(let route, _, _, _, let buildView):
-      buildView(route.screen)
+      let view = buildView(route.screen)
+      // Unobserved apps (release builds) get the screen untouched: no reporter, no state, no closures.
+      if ScreenAppearanceObserver.onAppear != nil {
+        view.modifier(ScreenAppearanceReporter(view: view))
+      } else {
+        view
+      }
     }
   }
 
